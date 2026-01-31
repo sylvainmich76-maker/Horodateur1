@@ -1,0 +1,125 @@
+﻿<Window x:Class="Horodateur.Views.ParametresWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Paramètres de l'application" 
+        Height="600"
+        Width="500"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <!-- Paramètres Email -->
+            <GroupBox Header="🔧 Paramètres Email" 
+                      Margin="0,0,0,15" 
+                      Padding="10"
+                      FontWeight="Bold">
+                <StackPanel Margin="5">
+                    <Grid Margin="0,0,0,8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0" 
+                               Content="Serveur SMTP:" 
+                               VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" 
+                                 Text="{Binding ParametresActuels.SmtpServer, UpdateSourceTrigger=PropertyChanged}" 
+                                 Height="28" FontSize="13"/>
+
+                        <Label Grid.Row="1" Grid.Column="0" 
+                               Content="Port SMTP:" 
+                               VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" 
+                                 Text="{Binding ParametresActuels.SmtpPort, UpdateSourceTrigger=PropertyChanged}" 
+                                 Height="28" FontSize="13"/>
+                    </Grid>
+
+                    <Label Content="Nom d'utilisateur:" Margin="0,8,0,0"/>
+                    <TextBox Text="{Binding ParametresActuels.SmtpUsername, UpdateSourceTrigger=PropertyChanged}" 
+                             Height="28" FontSize="13" Margin="0,2,0,8"/>
+
+                    <!-- CHANGEMENT IMPORTANT ICI : Utiliser une TextBox normale pour le mot de passe -->
+                    <Label Content="Mot de passe:"/>
+                    <PasswordBox x:Name="PasswordBox"
+                                 PasswordChanged="PasswordBox_PasswordChanged"
+                                 Height="28" FontSize="13" Margin="0,2,0,8"/>
+
+                    <Label Content="Email destinataire:"/>
+                    <TextBox Text="{Binding ParametresActuels.EmailDestinataire, UpdateSourceTrigger=PropertyChanged}" 
+                             Height="28" FontSize="13" Margin="0,2,0,0"/>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Archivage -->
+            <GroupBox Header="📁 Archivage" 
+                      Margin="0,0,0,15" 
+                      Padding="10"
+                      FontWeight="Bold">
+                <StackPanel Margin="5">
+                    <Label Content="Chemin d'archivage:"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" 
+                                 Text="{Binding ParametresActuels.CheminArchivage, UpdateSourceTrigger=PropertyChanged}" 
+                                 Height="28" FontSize="13" Margin="0,0,5,0"/>
+                        <Button Grid.Column="1" 
+                                Content="📂 Parcourir" 
+                                Command="{Binding ParcourirCommand}" 
+                                Padding="12,5"
+                                FontWeight="Bold"/>
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+
+        <!-- Message de statut -->
+        <Border Grid.Row="1" 
+                Background="#F0F8FF" 
+                CornerRadius="5" 
+                Margin="0,10,0,15"
+                Padding="10">
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="#0066CC"
+                       FontStyle="Italic"
+                       FontSize="13"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"/>
+        </Border>
+
+        <!-- Boutons -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="✖️ Annuler" 
+                    Command="{Binding AnnulerCommand}" 
+                    Margin="0,0,15,0" 
+                    Padding="20,8"
+                    Background="#F5F5F5"
+                    BorderBrush="#CCCCCC"
+                    FontWeight="Bold"
+                    FontSize="13"/>
+
+            <Button Content="💾 Enregistrer" 
+                    Command="{Binding EnregistrerCommand}" 
+                    Background="#4CAF50" 
+                    Foreground="White"
+                    Padding="20,8"
+                    FontWeight="Bold"
+                    FontSize="13"/>
+        </StackPanel>
+    </Grid>
+</Window>

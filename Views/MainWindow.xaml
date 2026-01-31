@@ -1,0 +1,380 @@
+﻿<Window x:Class="Horodateur.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="clr-namespace:Horodateur.Models"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="Horodateur - Gestion des interventions" 
+        Height="700" Width="1000"
+        WindowStartupLocation="CenterScreen">
+    
+
+
+    <Window.Resources>
+        <!-- Définir les sources de données pour les enums -->
+        <ObjectDataProvider x:Key="TypeInterventionValues"
+                            MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:TypeIntervention"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="TypeAppelValues"
+                            MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:TypeAppel"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        
+        <Storyboard x:Key="FadeInStoryboard">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                         From="0" To="1" Duration="0:0:0.3"/>
+        </Storyboard>
+        <Storyboard x:Key="FadeOutStoryboard">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                         From="1" To="0" Duration="0:0:0.3"/>
+        </Storyboard>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- En-tête avec logo -->
+        <Border Grid.Row="0" Background="#CC0000" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Logo -->
+                <Border Grid.Column="0" 
+                        Width="60" Height="60" 
+                        Background="White"
+                        CornerRadius="5"
+                        Margin="0,0,20,0">
+                    <TextBlock Text="🔥" 
+                               FontSize="30"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Titre -->
+                <TextBlock Grid.Column="1" 
+                           Text="HORODATEUR - SERVICE INCENDIE" 
+                           Foreground="White" 
+                           FontSize="24" 
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"/>
+
+                <!-- Bouton Paramètres -->
+                <Button Grid.Column="2" 
+                        Content="⚙ Paramètres" 
+                        Command="{Binding OuvrirParametresCommand}"
+                        Background="White" 
+                        Foreground="#CC0000"
+                        FontWeight="Bold"
+                        Padding="10,5"
+                        Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- Contenu principal -->
+        <Grid Grid.Row="1" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Colonne gauche : Pompiers avec TRIGGER -->
+            <GroupBox Grid.Column="0" 
+          Header="POMPIERS PRÉSENTS" 
+          Margin="0,0,10,0" 
+          Opacity="0">
+                <!-- Démarre invisible -->
+                <GroupBox.Style>
+                    <Style TargetType="GroupBox">
+                        <Setter Property="Opacity" Value="0"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PompiersVisibles}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard Storyboard="{StaticResource FadeInStoryboard}"/>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <BeginStoryboard Storyboard="{StaticResource FadeOutStoryboard}"/>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </GroupBox.Style>
+                
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Liste des pompiers -->
+                    <ScrollViewer Grid.Row="0">
+                        <ItemsControl ItemsSource="{Binding Pompiers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,5" Padding="10" CornerRadius="5">
+                                        <!-- STYLE avec TRIGGER pour la couleur -->
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="LightGray"/>
+                                                <Setter Property="Cursor" Value="Hand"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding EstPresent}" Value="True">
+                                                        <Setter Property="Background" Value="LightGreen"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" 
+                                                       Text="{Binding NomComplet}"
+                                                       FontSize="14"
+                                                       FontWeight="Bold"/>
+
+                                            <TextBlock Grid.Column="1" 
+                                                       Text="{Binding Grade}"
+                                                       FontSize="12"
+                                                       FontStyle="Italic"
+                                                       Margin="5,0,10,0"/>
+
+                                            <!-- Bouton Supprimer (visible seulement en mode édition) -->
+                                            <Button Grid.Column="2" 
+                                                    Content="🗑️" 
+                                                    Command="{Binding DataContext.SupprimerPompierCommand, 
+                                                            RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Padding="5"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    FontSize="12"
+                                                    ToolTip="Supprimer ce pompier"
+                                                    Cursor="Hand">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsEditable}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                        <!-- Clic pour sélectionner/désélectionner -->
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick" 
+                                                          Command="{Binding DataContext.TogglePompierCommand, 
+                                                                  RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                          CommandParameter="{Binding}"/>
+                                        </Border.InputBindings>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Boutons de gestion -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="➕ Ajouter" 
+                                Command="{Binding AjouterPompierCommand}"
+                                Padding="10,5"
+                                Background="#4CAF50"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                Margin="0,0,5,0"
+                                Cursor="Hand"
+                                ToolTip="Ajouter un nouveau pompier"/>
+
+                        <Button Content="✏️ Éditer" 
+                                Command="{Binding EditerPompiersCommand}"
+                                Padding="10,5"
+                                Background="#2196F3"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                Margin="5,0,5,0"
+                                Cursor="Hand"
+                                ToolTip="Activer/désactiver le mode édition"/>
+
+                        <Button Content="💾 Sauvegarder" 
+                                Command="{Binding SauvegarderPompiersCommand}"
+                                Padding="10,5"
+                                Background="#FF9800"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                Margin="5,0,0,0"
+                                Cursor="Hand"
+                                ToolTip="Sauvegarder la liste des pompiers">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <!-- Colonne droite : Intervention -->
+            <GroupBox Grid.Column="1" Header="INFORMATIONS D'INTERVENTION">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <!-- Nom -->
+                        <Label Content="Nom de l'intervention:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding InterventionActuelle.Nom, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,0,0,10" 
+                                 Height="30"
+                                 FontSize="14"/>
+
+                        <!-- Adresse -->
+                        <Label Content="Adresse:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding InterventionActuelle.Adresse, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,0,0,10" 
+                                 Height="30"
+                                 FontSize="14"/>
+
+                        <!-- Type d'intervention -->
+                        <Label Content="Type d'intervention:" FontWeight="Bold"/>
+                        <ComboBox ItemsSource="{Binding Source={StaticResource TypeInterventionValues}}"
+                                  SelectedValue="{Binding SelectedTypeIntervention}"
+                                  Margin="0,0,0,10" 
+                                  Height="30"
+                                  FontSize="14"/>
+
+                        <!-- Type d'appel -->
+                        <Label Content="Type d'appel:" FontWeight="Bold"/>
+                        <ComboBox ItemsSource="{Binding Source={StaticResource TypeAppelValues}}"
+                                  SelectedValue="{Binding SelectedTypeAppel}"
+                                  Margin="0,0,0,10" 
+                                  Height="30"
+                                  FontSize="14"/>
+
+                        <!-- Dates -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                <Label Content="Date et heure de début:" FontWeight="Bold"/>
+                                <DatePicker SelectedDate="{Binding InterventionActuelle.DateDebut}" 
+                                            Height="30"
+                                            FontSize="14"/>
+                                <TextBox Text="{Binding InterventionActuelle.DateDebut, StringFormat=HH:mm}"
+                                         Margin="0,5,0,0" 
+                                         Height="30"
+                                         FontSize="14"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <Label Content="Date et heure de fin:" FontWeight="Bold"/>
+                                <DatePicker SelectedDate="{Binding InterventionActuelle.DateFin}" 
+                                            Height="30"
+                                            FontSize="14"/>
+                                <TextBox Text="{Binding InterventionActuelle.DateFin, StringFormat=HH:mm}"
+                                         Margin="0,5,0,0" 
+                                         Height="30"
+                                         FontSize="14"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Commentaires -->
+                        <Label Content="Commentaires:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding InterventionActuelle.Commentaires}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Height="100"
+                                 Margin="0,0,0,20"
+                                 FontSize="14"
+                                 VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </GroupBox>
+        </Grid>
+
+        <!-- Barre de statut et boutons -->
+        <Border Grid.Row="2" Background="#F0F0F0" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Message de statut -->
+                <TextBlock Grid.Column="0" 
+                           Text="{Binding StatusMessage}"
+                           VerticalAlignment="Center"
+                           FontStyle="Italic"
+                           Foreground="#333333"
+                           FontSize="14"/>
+
+                <!-- Bouton Réinitialiser -->
+                <Button Grid.Column="1" 
+                        Content="🔄 Réinitialiser" 
+                        Command="{Binding ReinitialiserCommand}"
+                        Margin="0,0,10,0"
+                        Padding="15,8"
+                        Background="#FF9800"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        FontSize="13"
+                        Cursor="Hand"/>
+
+                <!-- Bouton Envoyer avec TRIGGER pour IsEnabled -->
+                <Button Grid.Column="2" 
+                        Content="📤 ENVOYER LE RAPPORT" 
+                        Command="{Binding EnregistrerCommand}"
+                        Padding="30,10"
+                        Background="#4CAF50"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        FontSize="14"
+                        Cursor="">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="IsEnabled" Value="True"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSending}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                    <Setter Property="Background" Value="#AAAAAA"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>
